@@ -37,12 +37,21 @@ local PP = P_Tab:SubTab("Movement")
 local VP = V_Tab:SubTab("ESP & Highlights")
 local SP = S_Tab:SubTab("Menu Settings")
 
--- [ Shop & Farm Section ]
+-- [ Shop Seeds Section ]
 local FG = GP:Groupbox("Shop / Seeds", "Left")
 local SelectedSeed, AutoBuy, AutoSell = "Galaxy Cap Seed", false, false
 local AutoHarvest, AutoPlant = false, false
 
 local SeedList = {"Galaxy Cap Seed", "Candy Puff Seed", "Amethyst Bloom Seed", "Glow Shroom Seed", "Magic Mushroom Seed"}
+
+-- ตารางเก็บพิกัดสำหรับแต่ละเมล็ด
+local SeedPositions = {
+    ["Galaxy Cap Seed"] = Vector3.new(-51.121315002441406, 1, 138.6762237548828),
+    ["Candy Puff Seed"] = Vector3.new(-65.85592651367188, 1, 137.80421447753906),
+    ["Amethyst Bloom Seed"] = Vector3.new(-65.80278015136719, 0.9999990463256836, 154.21331787109375),
+    ["Glow Shroom Seed"] = Vector3.new(-66.34479522705078, 1.0000009536743164, 161.28097534179688),
+    ["Magic Mushroom Seed"] = Vector3.new(-66.10348510742188, 1, 168.87777709960938)
+}
 
 FG:AddDropdown({
     Title = "Select Seed", Values = SeedList, Default = "Galaxy Cap Seed",
@@ -79,6 +88,47 @@ FG:AddToggle({
     end
 })
 
+-- [ Gear Shop Section ]
+local GearGroup = GP:Groupbox("Gear Shop", "Left")
+local SelectedBooster = "Growth Booster"
+local AutoBuyBooster = false
+
+local BoosterList = {"Growth Booster", "Speed Growth"}
+
+GearGroup:AddDropdown({
+    Title = "Select Booster", Values = BoosterList, Default = "Growth Booster",
+    Callback = function(v) S() SelectedBooster = v end
+})
+
+GearGroup:AddButton({
+    Title = "Buy Selected Booster",
+    Callback = function()
+        S()
+        pcall(function()
+            local args = {SelectedBooster, 0}
+            RS:WaitForChild("BuyBoosterRequest"):FireServer(unpack(args))
+        end)
+    end
+})
+
+GearGroup:AddToggle({
+    Title = "Auto Buy Selected Booster", Default = false,
+    Callback = function(v)
+        S() AutoBuyBooster = v
+        if AutoBuyBooster then
+            task.spawn(function()
+                while AutoBuyBooster do
+                    pcall(function()
+                        local args = {SelectedBooster, 0}
+                        RS:WaitForChild("BuyBoosterRequest"):FireServer(unpack(args))
+                    end)
+                    task.wait(0.5)
+                end
+            end)
+        end
+    end
+})
+
 -- [ Farm Functions ]
 local FarmGroup = GP:Groupbox("Farm Automation", "Right")
 FarmGroup:AddToggle({
@@ -89,7 +139,7 @@ FarmGroup:AddToggle({
             task.spawn(function()
                 while AutoHarvest do
                     pcall(function() RS:WaitForChild("HarvestEvent"):FireServer() end)
-                    task.wait(0.5)
+                    task.wait(1.5)
                 end
             end)
         end
@@ -103,7 +153,14 @@ FarmGroup:AddToggle({
         if AutoPlant then
             task.spawn(function()
                 while AutoPlant do
-                    pcall(function() RS:WaitForChild("PlantEvent"):FireServer(SelectedSeed) end)
+                    pcall(function()
+                        local pos = SeedPositions[SelectedSeed] or Vector3.new(-51.121315002441406, 1, 138.6762237548828)
+                        local args = {
+                            pos,
+                            SelectedSeed
+                        }
+                        RS:WaitForChild("PlantSeedRequest"):FireServer(unpack(args))
+                    end)
                     task.wait(0.5)
                 end
             end)
