@@ -1,22 +1,60 @@
+local TargetPlaceId = game.PlaceId -- ตรวจจับ PlaceId แมพ [อัพเดท]ปลิกขวด
+
+if game.PlaceId ~= TargetPlaceId then
+    game:GetService("StarterGui"):SetCore("SendNotification", {
+        Title = "APEX HUB",
+        Text = "ไม่สามารถทำได้ ทำได้แต่ [อัพเดท]ปลิกขวด",
+        Duration = 5
+    })
+    return
+end
+
 local L = loadstring(game:HttpGet("https://raw.githubusercontent.com/Vovabro46/trash/refs/heads/main/Test.lua"))()
 local RS, SS, UIS, Players = game:GetService("ReplicatedStorage"), game:GetService("SoundService"), game:GetService("UserInputService"), game:GetService("Players")
 local TeleportService, HttpService = game:GetService("TeleportService"), game:GetService("HttpService")
 local LocalPlayer = Players.LocalPlayer
 
-local function S()
+-- ระบบจัดการเสียง
+local function PlaySound(id)
     task.spawn(function()
         local sound = Instance.new("Sound", SS)
-        sound.SoundId = "rbxassetid://88368154755133" sound.Volume = 0.5 sound:Play()
+        sound.SoundId = "rbxassetid://" .. tostring(id)
+        sound.Volume = 0.5
+        sound:Play()
         game:GetService("Debris"):AddItem(sound, 2)
     end)
 end
 
-L:Watermark("APEX HUB | v 1.0")
+-- เสียงปุ่มทั่วไป
+local function S()
+    PlaySound(88368154755133)
+end
+
+-- เสียงสลับหมวดหมู่
+local function PlayTabSound()
+    PlaySound(128658597279705)
+end
+
+-- เสียงเปิด/ปิด UI
+local function PlayToggleSound()
+    PlaySound(121862943743017)
+end
+
+L:Watermark("APEX HUB | [อัพเดท]ปลิกขวด")
 local W = L:Window("APEX HUB")
+
+-- สร้าง แท็บ/หมวดหมู่ พร้อมใส่เสียงสลับหมวดหมู่
 local M = W:Tab("Main", "eye")
 local P_Tab = W:Tab("Player", "user")
 local V_Tab = W:Tab("Visuals", "eye")
 local S_Tab = W:Tab("Settings", "7733771472")
+
+-- เพิ่ม Event เล่นเสียงเมื่อกดสลับหมวดหมู่ (Tab)
+for _, tab in pairs({M, P_Tab, V_Tab, S_Tab}) do
+    if tab.Button then
+        tab.Button.MouseButton1Click:Connect(PlayTabSound)
+    end
+end
 
 local GP = M:SubTab("General")
 local PP = P_Tab:SubTab("Movement")
@@ -207,4 +245,9 @@ local UG = SP:Groupbox("UI Settings", "Right")
 UG:AddToggle({ Title = "Show Watermark", Default = true, Callback = function(v) S() L.WatermarkSettings.Enabled = v end })
 UG:AddButton({ Title = "Unload UI", Callback = function() S() if game:GetService("CoreGui"):FindFirstChild("RedOnyx") then game:GetService("CoreGui").RedOnyx:Destroy() end end })
 
-UIS.InputBegan:Connect(function(i, p) if not p and i.KeyCode == Enum.KeyCode.RightControl then S() end end)
+-- ปุ่ม Toggle สำหรับเปิด-ปิด UI (RightControl)
+UIS.InputBegan:Connect(function(i, p)
+    if not p and i.KeyCode == Enum.KeyCode.RightControl then
+        PlayToggleSound()
+    end
+end)
