@@ -21,17 +21,61 @@ local function PlayToggleSound() PlaySound(121862943743017) end
 L:Watermark("APEX HUB | by CandyDevxofficial")
 local W = L:Window("APEX HUB")
 
+-- [ Rainbow Border Implementation ]
+task.spawn(function()
+    task.wait(0.5)
+    local coreGui = game:GetService("CoreGui")
+    local uiName = "RedOnyx"
+    local gui = coreGui:FindFirstChild(uiName) or LocalPlayer:WaitForChild("PlayerGui"):FindFirstChild(uiName)
+
+    if gui then
+        -- ค้นหา Frame หลักของ UI เพื่อใส่กรอบสีรุ้ง
+        local mainFrame = gui:FindFirstChildOfClass("Frame") or gui:FindFirstChild("Main") or gui:FindFirstChild("Container")
+        
+        -- หากค้นหาตามประเภท ให้ใช้ Frame ที่ครอบ UI ทั้งหมด
+        for _, v in pairs(gui:GetDescendants()) do
+            if v:IsA("Frame") and v.Parent == gui then
+                mainFrame = v
+                break
+            end
+        end
+
+        if mainFrame then
+            local stroke = mainFrame:FindFirstChild("RainbowStroke") or Instance.new("UIStroke")
+            stroke.Name = "RainbowStroke"
+            stroke.Thickness = 2
+            stroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+            stroke.Parent = mainFrame
+
+            -- วนลูปเปลี่ยนสีรุ้งแบบ Smooth
+            task.spawn(function()
+                local hue = 0
+                while true do
+                    hue = (hue + 0.005) % 1
+                    stroke.Color = Color3.fromHSV(hue, 1, 1)
+                    task.wait(0.03)
+                end
+            end)
+        end
+
+        -- ระบบดักจับเสียงคลิกเมนู/หมวดหมู่ทุกประเภทใน UI
+        for _, btn in pairs(gui:GetDescendants()) do
+            if btn:IsA("TextButton") or btn:IsA("ImageButton") then
+                if btn.Name:lower():find("tab") or btn.Parent.Name:lower():find("tab") then
+                    btn.MouseButton1Click:Connect(PlayTabSound)
+                end
+            end
+        end
+    end
+end)
+
+-- [ Tab Selection ]
 local M = W:Tab("Main", "eye")
 local P_Tab = W:Tab("Player", "user")
 local V_Tab = W:Tab("Visuals", "eye")
 local S_Tab = W:Tab("Settings", "7733771472")
 
-for _, tab in pairs({M, P_Tab, V_Tab, S_Tab}) do
-    if tab.Button then
-        tab.Button.MouseButton1Click:Connect(PlayTabSound)
-    end
-end
-
+-- [ SubTab Selection ]
 local GP = M:SubTab("General")
 local PP = P_Tab:SubTab("Movement")
 local VP = V_Tab:SubTab("ESP & Highlights")
@@ -44,7 +88,6 @@ local AutoHarvest, AutoPlant = false, false
 
 local SeedList = {"Galaxy Cap Seed", "Candy Puff Seed", "Amethyst Bloom Seed", "Glow Shroom Seed", "Magic Mushroom Seed"}
 
--- ตารางเก็บพิกัดสำหรับแต่ละเมล็ด
 local SeedPositions = {
     ["Galaxy Cap Seed"] = Vector3.new(-51.121315002441406, 1, 138.6762237548828),
     ["Candy Puff Seed"] = Vector3.new(-65.85592651367188, 1, 137.80421447753906),
@@ -278,8 +321,12 @@ local UG = SP:Groupbox("UI Settings", "Right")
 UG:AddToggle({ Title = "Show Watermark", Default = true, Callback = function(v) S() L.WatermarkSettings.Enabled = v end })
 UG:AddButton({ Title = "Unload UI", Callback = function() S() if game:GetService("CoreGui"):FindFirstChild("RedOnyx") then game:GetService("CoreGui").RedOnyx:Destroy() end end })
 
+-- ระบบเปิด-ปิด UI ด้วยปุ่ม RightControl พร้อมเสียง Toggle Sound
 UIS.InputBegan:Connect(function(i, p)
     if not p and i.KeyCode == Enum.KeyCode.RightControl then
         PlayToggleSound()
+        if L.Toggle then
+            L:Toggle()
+        end
     end
 end)
