@@ -1,0 +1,36 @@
+local Arqel = loadstring(game:HttpGet("https://raw.githubusercontent.com/Cobruhehe/expert-octo-doodle/refs/heads/main/ArqelUi.luau"))()
+
+--------------------------------------------------------------------------------
+-- 1. ตั้งค่าหน้าตา UI และลิงก์แจกคีย์
+--------------------------------------------------------------------------------
+Arqel.Appearance.Title = "APEX HUB"
+Arqel.Appearance.Subtitle = "Get key from link and enter below"
+
+-- 🔗 ปุ่ม Get Key จะคัดลอกลิงก์ Pastebin ให้ผู้เล่น
+Arqel.Links.GetKey = "https://pastebin.com/raw/pJdHUNFn"
+
+--------------------------------------------------------------------------------
+-- 2. ระบบตรวจสอบคีย์ดึงสดจาก Pastebin
+--------------------------------------------------------------------------------
+Arqel.Callbacks.OnVerify = function(key)
+    local success, onlineKey = pcall(function()
+        return game:HttpGet("https://pastebin.com/raw/pJdHUNFn")
+    end)
+    
+    if success and onlineKey then
+        onlineKey = onlineKey:gsub("%s+", "")
+        return key == onlineKey
+    end
+    
+    return false
+end
+
+--------------------------------------------------------------------------------
+-- 3. สคริปต์หลัก Grow-a-mushroom (อัปเดตเรียบร้อย)
+--------------------------------------------------------------------------------
+Arqel.Callbacks.OnSuccess = function()
+    loadstring(game:HttpGet("https://raw.githubusercontent.com/CandyDevxOfficial/Grow-a-mushroom/refs/heads/main/Grow-a-mushroom"))()
+end
+
+-- เปิดใช้งาน UI
+Arqel:Launch()
